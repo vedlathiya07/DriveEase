@@ -1,0 +1,45 @@
+.car-details {
+  font-family: "Poppins", sans-serif;
+}
+
+.car-title {
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+/* SLIDER */
+.slider-wrapper {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.car-image {
+  height: 300px;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* CARD BOX */
+.card-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* PRICE BOX */
+.price-box {
+  background: #fff;
+  padding: 25px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* DARK MODE */
+body.dark .card-box,
+body.dark .price-box {
+  background: #1e1e1e;
+  color: white;
+}

@@ -1,0 +1,11 @@
+.booking-page h2 {
+  font-weight: 700;
+}
+
+.booking-page .card {
+  border-radius: 14px;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}

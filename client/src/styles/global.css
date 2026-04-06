@@ -1,0 +1,60 @@
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--surface);
+  position: relative;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #7a8795;
+}
+
+::selection {
+  background: rgba(15, 118, 110, 0.18);
+  color: #112033;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+/* Hide scrollbar for Chrome, Safari and Edge */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+html {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for IE and old Edge */
+body {
+  -ms-overflow-style: none;
+}

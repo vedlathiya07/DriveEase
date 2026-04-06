@@ -1,0 +1,32 @@
+{
+  "name": "driveease",
+  "version": "1.0.0",
+  "description": "DriveEase production-ready car rental platform",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js",
+    "build": "npm --prefix client run build",
+    "lint": "npm --prefix client run lint",
+    "check": "npm --prefix client run build && npm --prefix client run lint",
+    "seed": "node scripts/resetAndSeed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.14.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "leaflet": "^1.9.4",
+    "mongoose": "^9.3.3",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.4",
+    "razorpay": "^2.9.6",
+    "react-leaflet": "^5.0.0"
+  }
+}
