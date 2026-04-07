@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiPlusCircle, FiTrash2, FiUploadCloud } from "react-icons/fi";
+import { FiPlusCircle, FiTrash2, FiUploadCloud, FiEdit2 } from "react-icons/fi";
 import API from "../services/api";
 import Loader from "../components/Loader";
 import { useToast } from "../components/Toast";
@@ -32,6 +32,7 @@ export default function FleetManagerPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -97,6 +98,30 @@ export default function FleetManagerPage() {
     setForm(initialForm);
     setAddons([emptyAddon]);
     setImages([]);
+    setEditingId(null);
+  };
+
+  const handleEdit = (car) => {
+    setEditingId(car._id);
+    setForm({
+      title: car.title || "",
+      brand: car.brand || "",
+      category: car.category || "Premium",
+      year: car.year || "",
+      description: car.description || "",
+      pricePerDay: car.pricePerDay || "",
+      location: car.location || "",
+      fuelType: car.fuelType || "Petrol",
+      seats: car.specs?.seats || "4",
+      transmission: car.specs?.transmission || "Automatic",
+      mileage: car.specs?.mileage || "",
+      homeDelivery: car.deliveryOptions?.homeDelivery || false,
+      selfPickup: car.deliveryOptions?.selfPickup ?? true,
+      meetUpPoint: car.deliveryOptions?.meetUpPoint || "",
+    });
+    setAddons(car.addons?.length ? car.addons : [emptyAddon]);
+    setImages([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (event) => {
@@ -126,15 +151,24 @@ export default function FleetManagerPage() {
         formData.append("images", image);
       });
 
-      await API.post("/cars", formData);
+      if (editingId) {
+        await API.put(`/cars/${editingId}`, formData);
+        showToast({
+          title: "Listing updated",
+          message: "Your car listing has been updated.",
+          tone: "success",
+        });
+      } else {
+        await API.post("/cars", formData);
+        showToast({
+          title: "Car added",
+          message: "Your listing is now live in the DriveEase fleet.",
+          tone: "success",
+        });
+      }
+      
       await refreshListings();
       resetForm();
-
-      showToast({
-        title: "Car added",
-        message: "Your listing is now live in the DriveEase fleet.",
-        tone: "success",
-      });
     } catch (error) {
       showToast({
         title: "Unable to save listing",
@@ -185,7 +219,7 @@ export default function FleetManagerPage() {
 
         <div className="dashboard-grid owner-grid">
           <form className="detail-card listing-form" onSubmit={handleSubmit}>
-            <h2>Add a New Vehicle</h2>
+            <h2>{editingId ? "Edit Vehicle" : "Add a New Vehicle"}</h2>
             <div className="form-two-column">
               <label>
                 Title
@@ -497,14 +531,28 @@ export default function FleetManagerPage() {
               )}
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              disabled={submitting}
-            >
-              <FiUploadCloud />
-              {submitting ? "Saving listing..." : "Publish Vehicle"}
-            </button>
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg"
+                disabled={submitting}
+                style={{ flex: 1 }}
+              >
+                <FiUploadCloud />
+                {submitting ? "Saving listing..." : (editingId ? "Update Listing" : "Publish Vehicle")}
+              </button>
+              
+              {editingId && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-lg"
+                  disabled={submitting}
+                  onClick={resetForm}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
 
           <div className="detail-card">
@@ -538,6 +586,14 @@ export default function FleetManagerPage() {
                       >
                         {car.availabilityStatus || "Available"}
                       </span>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => handleEdit(car)}
+                      >
+                        <FiEdit2 />
+                        Edit
+                      </button>
                       <button
                         type="button"
                         className="btn btn-ghost btn-sm"
