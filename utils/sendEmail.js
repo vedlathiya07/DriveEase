@@ -1,42 +1,36 @@
 // =====================================
-// EMAIL SERVICE (NODEMAILER)
+// EMAIL SERVICE (RESEND)
 // =====================================
 
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const isMailerConfigured =
-  process.env.EMAIL_USER && process.env.EMAIL_PASS ? true : false;
-
-const transporter = isMailerConfigured
-  ? nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    })
-  : null;
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // =====================================
 // SEND EMAIL FUNCTION
 // =====================================
 const sendEmail = async (to, subject, text) => {
   try {
-    if (!transporter) {
-      console.log("Email skipped because mailer credentials are not configured");
+    if (!process.env.RESEND_API_KEY) {
+      console.log("Email skipped: RESEND_API_KEY not configured");
       return;
     }
 
-    const mailOptions = {
-      from: `DriveEase <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: "DriveEase <onboarding@resend.dev>", // default sender (works instantly)
       to,
       subject,
-      text,
-    };
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>${subject}</h2>
+          <p>${text}</p>
+          <hr/>
+          <small>DriveEase - Smart Car Rental Platform</small>
+        </div>
+      `,
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    console.log("✅ Email sent successfully");
+    console.log("✅ Email sent successfully via Resend");
   } catch (error) {
     console.error("❌ Email error:", error.message);
   }

@@ -283,7 +283,7 @@ router.post(
 // =====================================
 router.post("/legacy-disabled", auth, async (req, res) => {
   try {
-    return res.status(410).json({ error: "Legacy booking route is disabled" });
+    // return res.status(410).json({ error: "Legacy booking route is disabled" });
 
     const { carId, startDate, endDate, addons, deliveryMethod } = req.body;
 
@@ -340,7 +340,7 @@ router.post("/legacy-disabled", auth, async (req, res) => {
     const user = await User.findById(req.user.userId);
 
     if (user?.email) {
-      await sendEmail(
+      sendEmail(
         user.email,
         "DriveEase Booking Confirmed",
         `Hello ${user.name},
@@ -470,37 +470,37 @@ router.post(
   auth,
   upload.array("images", 5),
   async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
+    try {
+      const booking = await Booking.findById(req.params.id);
 
-    if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+      if (!booking) {
+        return res.status(404).json({ error: "Booking not found" });
+      }
+
+      booking.conditionReport.afterImages = req.files.map((f) => f.path);
+
+      // SIMPLE DAMAGE DETECTION
+      if (
+        booking.conditionReport.beforeImages &&
+        booking.conditionReport.afterImages &&
+        booking.conditionReport.beforeImages.length !==
+          booking.conditionReport.afterImages.length
+      ) {
+        booking.damageReport = {
+          possibleDamage: true,
+          notes: "Mismatch in image count. Check manually.",
+        };
+      }
+
+      await booking.save();
+
+      res.json({
+        message: "After images uploaded",
+        damageReport: booking.damageReport,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-
-    booking.conditionReport.afterImages = req.files.map((f) => f.path);
-
-    // SIMPLE DAMAGE DETECTION
-    if (
-      booking.conditionReport.beforeImages &&
-      booking.conditionReport.afterImages &&
-      booking.conditionReport.beforeImages.length !==
-        booking.conditionReport.afterImages.length
-    ) {
-      booking.damageReport = {
-        possibleDamage: true,
-        notes: "Mismatch in image count. Check manually.",
-      };
-    }
-
-    await booking.save();
-
-    res.json({
-      message: "After images uploaded",
-      damageReport: booking.damageReport,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
   },
 );
 

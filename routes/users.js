@@ -30,7 +30,9 @@ const sanitizeUser = (user) => ({
   email: user.email,
   role: user.role,
   phone: user.phone || "",
-  avatar: user.avatar || "",
+  avatar: user.avatar
+    ? `${process.env.BASE_URL || "http://localhost:3000"}/${user.avatar}`
+    : "",
   wishlist: user.wishlist || [],
   createdAt: user.createdAt,
 });

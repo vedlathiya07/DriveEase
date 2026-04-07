@@ -50,7 +50,7 @@ const createBookingFromPaymentSession = async (session) => {
   const car = hydratedBooking?.car;
 
   if (user?.email && car) {
-    await sendEmail(
+    sendEmail(
       user.email,
       "DriveEase booking confirmed",
       [
