@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const configuredBaseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const configuredBaseUrl = (import.meta.env.VITE_API_URL || "").replace(
+  /\/$/,
+  "",
+);
 
 export const API_BASE_URL = configuredBaseUrl;
 
@@ -11,7 +14,7 @@ const API = axios.create({
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
+    console.log("API BASE URL:", configuredBaseUrl);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
