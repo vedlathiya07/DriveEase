@@ -80,10 +80,7 @@ const resolveSubmittedCoords = async ({ location, lat, lng }) => {
   const parsedLat = parseOptionalNumber(lat);
   const parsedLng = parseOptionalNumber(lng);
 
-  if (
-    parsedLat !== undefined &&
-    parsedLng !== undefined
-  ) {
+  if (parsedLat !== undefined && parsedLng !== undefined) {
     return {
       lat: parsedLat,
       lng: parsedLng,
@@ -123,7 +120,7 @@ const buildCarPayload = async (req, { partial = false } = {}) => {
     isAvailable,
   } = req.body;
 
-  const images = req.files?.map((file) => file.filename) || [];
+  const images = req.files?.map((file) => `cars/${file.filename}`) || [];
   const payload = {};
 
   if (!partial || hasOwnProperty(req.body, "title")) {
@@ -324,7 +321,9 @@ router.put(
       }
 
       if (!canManageCar(car, req.user)) {
-        return res.status(403).json({ error: "Not authorized to edit this car" });
+        return res
+          .status(403)
+          .json({ error: "Not authorized to edit this car" });
       }
 
       const payload = await buildCarPayload(req, { partial: true });
@@ -416,7 +415,10 @@ router.put("/:id/delivery", auth, ownerOnly, async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id).populate("owner", "name email");
+    const car = await Car.findById(req.params.id).populate(
+      "owner",
+      "name email",
+    );
 
     if (!car) {
       return res.status(404).json({ error: "Car not found" });
@@ -439,7 +441,9 @@ router.delete("/:id", auth, async (req, res) => {
     }
 
     if (req.user.role !== "admin" && !canManageCar(car, req.user)) {
-      return res.status(403).json({ error: "Not authorized to delete this car" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this car" });
     }
 
     await car.deleteOne();
