@@ -120,7 +120,7 @@ const buildCarPayload = async (req, { partial = false } = {}) => {
     isAvailable,
   } = req.body;
 
-  const images = req.files?.map((file) => `cars/${file.filename}`) || [];
+  const images = req.files?.map((file) => file.path) || [];
   const payload = {};
 
   if (!partial || hasOwnProperty(req.body, "title")) {

@@ -1,56 +1,41 @@
 // =====================================
-// MULTER FILE UPLOAD CONFIG
+// MULTER FILE UPLOAD CONFIG (CLOUDINARY)
 // =====================================
 
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-
-const uploadsRoot = path.join(__dirname, "..", "uploads");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../config/cloudinary");
 
 // =====================================
-// CREATE FOLDERS IF NOT EXIST
+// SET UPLOAD TYPE (car, avatar, etc.)
 // =====================================
-const createFolder = (folderPath) => {
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true });
-  }
-};
-
-// Ensure required folders exist
-createFolder(path.join(uploadsRoot, "cars"));
-createFolder(path.join(uploadsRoot, "before"));
-createFolder(path.join(uploadsRoot, "after"));
-createFolder(path.join(uploadsRoot, "avatars"));
-
 const setUploadType = (type) => (req, res, next) => {
   req.uploadType = type;
   next();
 };
 
 // =====================================
-// STORAGE CONFIGURATION
+// CLOUDINARY STORAGE CONFIG
 // =====================================
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const type = req.uploadType || req.body.type;
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    let folder = "general";
 
-    if (type === "car") {
-      cb(null, path.join(uploadsRoot, "cars"));
-    } else if (type === "before") {
-      cb(null, path.join(uploadsRoot, "before"));
-    } else if (type === "after") {
-      cb(null, path.join(uploadsRoot, "after"));
-    } else if (type === "avatar") {
-      cb(null, path.join(uploadsRoot, "avatars"));
-    } else {
-      cb(null, uploadsRoot);
+    if (req.uploadType === "car") {
+      folder = "cars";
+    } else if (req.uploadType === "before") {
+      folder = "before";
+    } else if (req.uploadType === "after") {
+      folder = "after";
+    } else if (req.uploadType === "avatar") {
+      folder = "avatars";
     }
-  },
 
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueName + path.extname(file.originalname));
+    return {
+      folder: folder,
+      allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    };
   },
 });
 
@@ -60,7 +45,7 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|webp/;
 
-  const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const ext = allowedTypes.test(file.originalname.toLowerCase());
   const mime = allowedTypes.test(file.mimetype);
 
   if (ext && mime) {
@@ -74,11 +59,11 @@ const fileFilter = (req, file, cb) => {
 // MULTER INSTANCE
 // =====================================
 const upload = multer({
-  storage: storage,
+  storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
-  fileFilter: fileFilter,
+  fileFilter,
 });
 
 module.exports = {

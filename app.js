@@ -64,7 +64,7 @@ app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 // =====================================
 // STATIC FILES
 // =====================================
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // =====================================
 // ROUTES

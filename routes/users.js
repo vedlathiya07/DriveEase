@@ -1,3 +1,7 @@
+// =====================================
+// IMPORTS
+// =====================================
+
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -9,20 +13,9 @@ const { setUploadType, upload } = require("../middleware/upload");
 
 const router = express.Router();
 
-const toPublicFilePath = (filePath) => {
-  const normalizedPath = filePath.replace(/\\/g, "/");
-  const uploadsIndex = normalizedPath.lastIndexOf("/uploads/");
-
-  if (uploadsIndex >= 0) {
-    return normalizedPath.slice(uploadsIndex + 1);
-  }
-
-  if (normalizedPath.startsWith("uploads/")) {
-    return normalizedPath;
-  }
-
-  return `uploads/${normalizedPath.split("/").pop()}`;
-};
+// =====================================
+// SANITIZE USER (RETURN SAFE DATA)
+// =====================================
 
 const sanitizeUser = (user) => ({
   id: user._id,
@@ -30,12 +23,14 @@ const sanitizeUser = (user) => ({
   email: user.email,
   role: user.role,
   phone: user.phone || "",
-  avatar: user.avatar
-    ? `${process.env.BASE_URL || "http://localhost:3000"}/${user.avatar}`
-    : "",
+  avatar: user.avatar || "", // Cloudinary URL directly
   wishlist: user.wishlist || [],
   createdAt: user.createdAt,
 });
+
+// =====================================
+// SIGNUP
+// =====================================
 
 router.post("/signup", async (req, res) => {
   try {
@@ -79,6 +74,10 @@ router.post("/signup", async (req, res) => {
     });
   }
 });
+
+// =====================================
+// LOGIN
+// =====================================
 
 router.post("/login", async (req, res) => {
   try {
@@ -135,6 +134,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// =====================================
+// GET PROFILE
+// =====================================
+
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).populate(
@@ -161,6 +164,10 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
+// =====================================
+// UPLOAD AVATAR (CLOUDINARY)
+// =====================================
+
 router.post(
   "/me/avatar",
   auth,
@@ -184,7 +191,9 @@ router.post(
         });
       }
 
-      user.avatar = toPublicFilePath(req.file.path);
+      //  Save Cloudinary URL directly
+      user.avatar = req.file.path;
+
       await user.save();
 
       const refreshedUser = await User.findById(user._id).populate(
@@ -206,6 +215,10 @@ router.post(
   },
 );
 
+// =====================================
+// UPDATE PROFILE
+// =====================================
+
 router.put("/me", auth, async (req, res) => {
   try {
     const { name, phone, avatar, password } = req.body;
@@ -218,17 +231,9 @@ router.put("/me", auth, async (req, res) => {
       });
     }
 
-    if (name) {
-      user.name = name;
-    }
-
-    if (typeof phone === "string") {
-      user.phone = phone;
-    }
-
-    if (typeof avatar === "string") {
-      user.avatar = avatar;
-    }
+    if (name) user.name = name;
+    if (typeof phone === "string") user.phone = phone;
+    if (typeof avatar === "string") user.avatar = avatar;
 
     if (password) {
       user.password = await bcrypt.hash(password, 10);
@@ -254,6 +259,10 @@ router.put("/me", auth, async (req, res) => {
   }
 });
 
+// =====================================
+// GET WISHLIST
+// =====================================
+
 router.get("/wishlist", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).populate(
@@ -273,6 +282,10 @@ router.get("/wishlist", auth, async (req, res) => {
   }
 });
 
+// =====================================
+// TOGGLE WISHLIST
+// =====================================
+
 router.put("/wishlist/:carId", auth, async (req, res) => {
   try {
     const car = await Car.findById(req.params.carId);
@@ -285,6 +298,7 @@ router.put("/wishlist/:carId", auth, async (req, res) => {
     }
 
     const user = await User.findById(req.user.userId);
+
     const alreadyWishlisted = user.wishlist.some(
       (item) => item.toString() === req.params.carId,
     );
