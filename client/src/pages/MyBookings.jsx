@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import "./MyBookings.css";
 
+const API2 = import.meta.env.VITE_API_URL;
+
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ export default function MyBookings() {
               <div className="card booking-card p-3">
                 {/* CAR IMAGE */}
                 <img
-                  src={`http://localhost:3000/uploads/cars/${b.car?.images?.[0]}`}
+                  src={`${API2}/uploads/cars/${b.car?.images?.[0]}`}
                   alt="car"
                   className="booking-img"
                 />

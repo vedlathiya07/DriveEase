@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../services/api";
 
+const API2 = import.meta.env.VITE_API_URL;
+
 export default function Cars() {
   const [cars, setCars] = useState([]);
   const [filters, setFilters] = useState({
@@ -115,16 +117,16 @@ export default function Cars() {
               <div className="card h-100">
                 {/* IMAGE */}
                 <a href={`/car/${encodeId(car._id)}`}>
-                <img
-                  src={`http://localhost:3000/uploads/cars/${car.images?.[0]}`}
-                  alt="car"
-                  style={{
-                    height: "200px",
-                    objectFit: "cover",
-                    borderTopLeftRadius: "18px",
-                    borderTopRightRadius: "18px",
-                  }}
-                />
+                  <img
+                    src={`{API2}/uploads/cars/${car.images?.[0]}`}
+                    alt="car"
+                    style={{
+                      height: "200px",
+                      objectFit: "cover",
+                      borderTopLeftRadius: "18px",
+                      borderTopRightRadius: "18px",
+                    }}
+                  />
                 </a>
 
                 {/* BODY */}

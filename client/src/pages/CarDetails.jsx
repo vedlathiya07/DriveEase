@@ -56,7 +56,7 @@ export default function CarDetails() {
             car.images.map((img, i) => (
               <img
                 key={i}
-                src={`http://localhost:3000/uploads/cars/${img}`}
+                src={`{API}/uploads/cars/${img}`}
                 className="car-image"
                 alt="car"
               />

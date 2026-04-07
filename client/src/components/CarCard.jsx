@@ -1,13 +1,14 @@
 import { encodeId } from "../utils/idEncoder";
 import { Link } from "react-router-dom";
 import WishlistButton from "./WishlistButton";
+const API = import.meta.env.VITE_API_URL;
 
 export default function CarCard({ car }) {
   return (
     <div className="card h-100">
       {/* <a href=`/car/${encodeId(car._id)}`> */}
       <img
-        src={`http://localhost:3000/uploads/cars/${car.images?.[0]}`}
+        src={`${API}/uploads/cars/${car.images?.[0]}`}
         alt="car"
         style={{
           height: "200px",
@@ -37,7 +38,10 @@ export default function CarCard({ car }) {
             View Details
           </Link>
 
-          <Link to={`/booking/${encodeId(car._id)}`} className="btn btn-success w-100">
+          <Link
+            to={`/booking/${encodeId(car._id)}`}
+            className="btn btn-success w-100"
+          >
             Book Now
           </Link>
         </div>
