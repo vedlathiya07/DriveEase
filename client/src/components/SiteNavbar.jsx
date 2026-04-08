@@ -22,7 +22,7 @@ export default function SiteNavbar() {
   };
 
   return (
-    <header className="site-header">
+    <header className="site-header navbar navbar-expand-lg fixed-top navbar-blur">
       <div className="container">
         <nav className="top-nav">
           <Link
