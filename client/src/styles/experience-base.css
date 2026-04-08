@@ -103,13 +103,14 @@ p {
   z-index: 999;
   padding: 1rem 0;
 
-  background: rgba(244, 239, 231, 0.6);
+  background: rgba(244, 239, 231, 0.55);
 
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.07);
+  will-change: backdrop-filter;
 }
 .site-header::before {
   display: none;
