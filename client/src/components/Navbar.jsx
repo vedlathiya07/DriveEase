@@ -37,7 +37,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="navbar navbar-expand-lg navbar-dark shadow sticky-top"
+      className="navbar navbar-expand-lg fixed-top navbar-blur shadow sticky-top"
       style={{
         background: "rgba(33, 37, 41, 0.85)",
         backdropFilter: "blur(12px)",
