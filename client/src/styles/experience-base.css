@@ -104,16 +104,16 @@ p {
   padding: 1rem 0;
 
   /* GLASS LOOK */
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
 
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(14px);
 
   /* subtle separation */
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
   /* THIS IS KEY FOR YOUR LOOK */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .top-nav {
