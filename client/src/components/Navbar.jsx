@@ -39,10 +39,10 @@ export default function Navbar() {
     <nav
       className="navbar navbar-expand-lg navbar-dark shadow sticky-top"
       style={{
-        background: "rgba(33, 37, 41, 0.4)",
-        backdropFilter: "blur(16px) saturate(180%)",
-        WebkitBackdropFilter: "blur(16px) saturate(180%)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+        background: "rgba(0, 0, 0, 0.1)",
+        backdropFilter: "blur(40px) saturate(200%)",
+        WebkitBackdropFilter: "blur(40px) saturate(200%)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
         boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
         zIndex: 1030,
       }}
