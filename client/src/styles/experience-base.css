@@ -101,6 +101,7 @@ p {
 
 .site-header {
   position: sticky;
+
   top: 0;
   z-index: 999;
   padding: 1rem 0;
@@ -121,7 +122,7 @@ p {
 
 .site-header::before {
   content: "";
-  position: absolute;
+  position: sticky;
   inset: 0;
 
   background: linear-gradient(
