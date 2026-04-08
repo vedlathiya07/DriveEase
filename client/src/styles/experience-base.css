@@ -102,10 +102,14 @@ p {
   top: 0;
   z-index: 40;
   padding: 1rem 0;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+  /* REAL GLASS */
+  background: rgba(255, 255, 255, 0.05);
+
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .top-nav {
