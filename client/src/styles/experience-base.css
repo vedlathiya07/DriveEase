@@ -98,39 +98,14 @@ p {
 }
 
 .site-header {
-  .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    padding: 0.8rem 0;
-
-    /* GLASS EFFECT */
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-
-    /* BORDER + GLOW */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-
-    /* DEPTH */
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-
-    /* smooth look */
-    transition: all 0.3s ease;
-  }
-}
-
-.site-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    120deg,
-    rgba(15, 118, 110, 0.15),
-    rgba(249, 115, 22, 0.12)
-  );
-  opacity: 0.4;
-  pointer-events: none;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 1rem 0;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .top-nav {
@@ -178,10 +153,6 @@ h3 {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: 20px;
 }
 
 .nav-links,
@@ -215,9 +186,7 @@ h3 {
 .nav-link:hover,
 .nav-link-active {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 118, 110, 0.08);
 }
 
 .btn {
