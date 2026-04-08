@@ -38,10 +38,12 @@ export default function Navbar() {
   return (
     <nav
       className="navbar navbar-expand-lg fixed-top  sticky-top"
+      /* REPLACE WITH: */
       style={{
-        background: "rgba(33, 37, 41, 0.85)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        background: "rgba(255, 255, 255, 0.18)",
+        backdropFilter: "blur(28px) saturate(200%)",
+        WebkitBackdropFilter: "blur(28px) saturate(200%)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.25)",
         zIndex: 1030,
       }}
     >
