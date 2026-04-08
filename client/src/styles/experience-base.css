@@ -97,30 +97,28 @@ p {
   padding-bottom: 1.5rem;
 }
 
-/* REPLACE WITH: */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 999;
   padding: 1rem 0;
 
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(244, 239, 231, 0.72);
 
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(40px) saturate(180%) brightness(1.08);
+  -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.08);
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6),
+    0 2px 12px rgba(15, 23, 42, 0.05);
 }
 .site-header::before {
   content: "";
   position: absolute;
   inset: 0;
 
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.03)
-  );
+  background: rgba(255, 255, 255, 0.28);
 
   pointer-events: none;
 }
