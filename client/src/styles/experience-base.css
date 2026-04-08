@@ -103,24 +103,15 @@ p {
   z-index: 999;
   padding: 1rem 0;
 
-  background: rgba(244, 239, 231, 0.72);
+  background: rgba(244, 239, 231, 0.55);
 
-  backdrop-filter: blur(40px) saturate(180%) brightness(1.08);
-  -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.08);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6),
-    0 2px 12px rgba(15, 23, 42, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
 }
 .site-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background: rgba(255, 255, 255, 0.28);
-
-  pointer-events: none;
+  display: none;
 }
 
 .top-nav {
