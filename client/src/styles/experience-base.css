@@ -100,17 +100,20 @@ p {
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 999; /* increase to ensure it's above */
+  z-index: 40;
+  padding: 1rem 0;
 
-  /* IMPORTANT: transparent background */
-  background: rgba(255, 255, 255, 0.25);
+  /* GLASS LOOK */
+  background: rgba(255, 255, 255, 0.6);
 
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  /* subtle separation */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  /* THIS IS KEY FOR YOUR LOOK */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
 .top-nav {
