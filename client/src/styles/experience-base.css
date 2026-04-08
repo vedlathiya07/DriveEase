@@ -105,8 +105,8 @@ p {
 
   /* The "Glass" effect */
   background: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
-  backdrop-filter: blur(10px); /* The frosting effect */
-  -webkit-backdrop-filter: blur(35px); /* Required for Safari support */
+  backdrop-filter: blur(45px); /* The frosting effect */
+  -webkit-backdrop-filter: blur(45px); /* Required for Safari support */
 
   /* Optional polishing */
   border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Subtle edge */
