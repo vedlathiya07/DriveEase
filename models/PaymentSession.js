@@ -62,8 +62,7 @@ const paymentSessionSchema = new mongoose.Schema(
       default: "pending",
     },
     paymentMethod: {
-      type: String,
-      enum: ["upi", "card", "wallet", "netbanking"],
+      type: String, // razorpay method: upi, card, netbanking, wallet, emi, paylater …
     },
     transactionId: String,
     payerName: String,

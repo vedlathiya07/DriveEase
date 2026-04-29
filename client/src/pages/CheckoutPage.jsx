@@ -9,6 +9,7 @@ import {
   FiMapPin,
   FiShield,
   FiTruck,
+  FiZap,
 } from "react-icons/fi";
 import API from "../services/api";
 import Loader from "../components/Loader";
@@ -24,12 +25,7 @@ import { CAR_IMAGE_FALLBACK, getStoredImageUrl } from "../utils/media";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const paymentMethods = [
-  { id: "upi", label: "Demo UPI" },
-  { id: "card", label: "Demo Card" },
-  { id: "wallet", label: "Demo Wallet" },
-  { id: "netbanking", label: "Demo Net Banking" },
-];
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 const addDays = (date, count) => {
   const nextDate = new Date(date);
@@ -38,33 +34,25 @@ const addDays = (date, count) => {
 };
 
 const toDateInputValue = (date) => {
-  if (!date) {
-    return "";
-  }
-
+  if (!date) return "";
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-
   return `${year}-${month}-${day}`;
 };
 
 const buildDisabledDates = (bookedRanges) => {
   const blockedDates = [];
-
   bookedRanges.forEach((range) => {
     const cursor = new Date(range.startDate);
     cursor.setHours(0, 0, 0, 0);
-
     const endDate = new Date(range.endDate);
     endDate.setHours(0, 0, 0, 0);
-
     while (cursor < endDate) {
       blockedDates.push(new Date(cursor));
       cursor.setDate(cursor.getDate() + 1);
     }
   });
-
   return blockedDates;
 };
 
@@ -78,21 +66,29 @@ const buildBookingPayload = (carId, startDate, endDate, addons, deliveryMethod) 
 
 const getDeliveryChoices = (car) => {
   const choices = [];
-
-  if (car?.deliveryOptions?.homeDelivery) {
-    choices.push("homeDelivery");
-  }
-
-  if (car?.deliveryOptions?.meetUpPoint) {
-    choices.push("meetUpPoint");
-  }
-
-  if (car?.deliveryOptions?.selfPickup || choices.length === 0) {
-    choices.push("selfPickup");
-  }
-
+  if (car?.deliveryOptions?.homeDelivery) choices.push("homeDelivery");
+  if (car?.deliveryOptions?.meetUpPoint) choices.push("meetUpPoint");
+  if (car?.deliveryOptions?.selfPickup || choices.length === 0) choices.push("selfPickup");
   return choices;
 };
+
+// ─── Razorpay SDK loader ────────────────────────────────────────────────────
+
+const loadRazorpayScript = () =>
+  new Promise((resolve) => {
+    if (document.getElementById("razorpay-sdk")) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "razorpay-sdk";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function CheckoutPage() {
   const { id: rawId } = useParams();
@@ -100,6 +96,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
+
   const [car, setCar] = useState(null);
   const [bookedDates, setBookedDates] = useState([]);
   const [startDate, setStartDate] = useState(null);
@@ -110,22 +107,18 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
-  const [checkoutSession, setCheckoutSession] = useState(null);
-  const [showPaymentSheet, setShowPaymentSheet] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("upi");
-  const [payerName, setPayerName] = useState(user?.name || "");
+
   const minimumReturnDate = startDate ? addDays(startDate, 1) : addDays(new Date(), 1);
 
+  // Load car + booked dates
   useEffect(() => {
     let ignore = false;
-
     const loadCheckout = async () => {
       try {
         const [carResponse, rangesResponse] = await Promise.all([
           API.get(`/cars/${id}`),
           API.get(`/bookings/car/${id}/dates`),
         ]);
-
         if (!ignore) {
           const nextCar = carResponse.data;
           setCar(nextCar);
@@ -142,103 +135,58 @@ export default function CheckoutPage() {
           navigate("/cars");
         }
       } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
+        if (!ignore) setLoading(false);
       }
     };
-
     loadCheckout();
-
-    return () => {
-      ignore = true;
-    };
+    return () => { ignore = true; };
   }, [id, navigate, showToast]);
 
+  // Live price quote
   useEffect(() => {
-    if (!startDate || !endDate) {
-      setQuote(null);
-      return;
-    }
-
+    if (!startDate || !endDate) { setQuote(null); return; }
     let ignore = false;
-
     const fetchQuote = async () => {
       try {
         setQuoteLoading(true);
-
         const response = await API.post(
           "/bookings/quote",
-          buildBookingPayload(
-            id,
-            startDate,
-            endDate,
-            selectedAddons,
-            deliveryMethod,
-          ),
+          buildBookingPayload(id, startDate, endDate, selectedAddons, deliveryMethod),
         );
-
-        if (!ignore) {
-          setQuote(response.data.summary);
-        }
+        if (!ignore) setQuote(response.data.summary);
       } catch {
-        if (!ignore) {
-          setQuote(null);
-        }
+        if (!ignore) setQuote(null);
       } finally {
-        if (!ignore) {
-          setQuoteLoading(false);
-        }
+        if (!ignore) setQuoteLoading(false);
       }
     };
-
     fetchQuote();
-
-    return () => {
-      ignore = true;
-    };
+    return () => { ignore = true; };
   }, [deliveryMethod, endDate, id, selectedAddons, startDate]);
 
+  // Page title
   useEffect(() => {
-    if (car?.title) {
-      document.title = `Checkout - ${car.title} | DriveEase`;
-    }
+    if (car?.title) document.title = `Checkout - ${car.title} | DriveEase`;
   }, [car?.title]);
 
-  useEffect(() => {
-    if (!showPaymentSheet) {
-      return undefined;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [showPaymentSheet]);
-
   const toggleAddon = (addonName) => {
-    setSelectedAddons((currentAddons) =>
-      currentAddons.includes(addonName)
-        ? currentAddons.filter((item) => item !== addonName)
-        : [...currentAddons, addonName],
+    setSelectedAddons((prev) =>
+      prev.includes(addonName) ? prev.filter((i) => i !== addonName) : [...prev, addonName],
     );
   };
 
   const handleStartDateChange = (date) => {
     setStartDate(date);
-
-    if (date && endDate && endDate <= date) {
-      setEndDate(addDays(date, 1));
-    }
+    if (date && endDate && endDate <= date) setEndDate(addDays(date, 1));
   };
 
-  const handleCreateOrder = async () => {
+  // ─── Main payment handler ────────────────────────────────────────────────
+
+  const handlePayWithRazorpay = async () => {
     if (!startDate || !endDate) {
       showToast({
         title: "Select dates first",
-        message: "Choose your rental period before opening checkout.",
+        message: "Choose your rental period before proceeding to payment.",
         tone: "warning",
       });
       return;
@@ -247,64 +195,106 @@ export default function CheckoutPage() {
     try {
       setPaymentLoading(true);
 
-      const response = await API.post(
+      // 1. Load Razorpay SDK
+      const sdkLoaded = await loadRazorpayScript();
+      if (!sdkLoaded) {
+        showToast({
+          title: "Payment unavailable",
+          message: "Could not load Razorpay. Please check your connection and try again.",
+          tone: "warning",
+        });
+        return;
+      }
+
+      // 2. Create server-side Razorpay order
+      const orderResponse = await API.post(
         "/payment/create-order",
-        buildBookingPayload(
-          id,
-          startDate,
-          endDate,
-          selectedAddons,
-          deliveryMethod,
-        ),
+        buildBookingPayload(id, startDate, endDate, selectedAddons, deliveryMethod),
       );
 
-      setCheckoutSession(response.data.session);
-      setShowPaymentSheet(true);
+      const { session, razorpayKeyId } = orderResponse.data;
+
+      // 3. Open Razorpay checkout modal
+      const rzpOptions = {
+        key: razorpayKeyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: session.amountInPaise,
+        currency: session.currency || "INR",
+        name: "DriveEase",
+        description: `Car rental — ${car.title}`,
+        image: "https://res.cloudinary.com/drbeqb6zk/image/upload/v1/driveease-logo", // optional logo
+        order_id: session.orderId,
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        theme: {
+          color: "#6366f1", // indigo — matches DriveEase brand
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false);
+            showToast({
+              title: "Payment cancelled",
+              message: "You closed the payment window. Your booking was not confirmed.",
+              tone: "warning",
+            });
+          },
+        },
+        // 4. On payment success, verify server-side
+        handler: async (razorpayResponse) => {
+          try {
+            const verifyResponse = await API.post("/payment/verify", {
+              sessionId: session.sessionId,
+              razorpay_order_id: razorpayResponse.razorpay_order_id,
+              razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+              razorpay_signature: razorpayResponse.razorpay_signature,
+            });
+
+            showToast({
+              title: "Payment successful! 🎉",
+              message: "Your booking has been confirmed.",
+              tone: "success",
+            });
+
+            navigate(`/booking-success/${encodeId(verifyResponse.data.booking._id)}`);
+          } catch (verifyError) {
+            showToast({
+              title: "Verification failed",
+              message:
+                verifyError.response?.data?.message ||
+                "Payment was made but verification failed. Please contact support.",
+              tone: "warning",
+            });
+          } finally {
+            setPaymentLoading(false);
+          }
+        },
+      };
+
+      const rzp = new window.Razorpay(rzpOptions);
+
+      rzp.on("payment.failed", (response) => {
+        setPaymentLoading(false);
+        showToast({
+          title: "Payment failed",
+          message: response.error?.description || "Your payment could not be processed.",
+          tone: "warning",
+        });
+      });
+
+      rzp.open();
     } catch (error) {
+      setPaymentLoading(false);
       showToast({
         title: "Checkout unavailable",
-        message:
-          error.response?.data?.message || "Unable to start the demo checkout.",
+        message: error.response?.data?.message || "Unable to start the checkout process.",
         tone: "warning",
       });
-    } finally {
-      setPaymentLoading(false);
     }
   };
 
-  const handleVerifyPayment = async () => {
-    if (!checkoutSession) {
-      return;
-    }
-
-    try {
-      setPaymentLoading(true);
-
-      const response = await API.post("/payment/verify", {
-        sessionId: checkoutSession.sessionId,
-        orderId: checkoutSession.orderId,
-        paymentMethod,
-        payerName,
-      });
-
-      showToast({
-        title: "Payment approved",
-        message: "Your demo payment and booking were completed successfully.",
-        tone: "success",
-      });
-
-      navigate(`/booking-success/${encodeId(response.data.booking._id)}`);
-    } catch (error) {
-      showToast({
-        title: "Payment failed",
-        message:
-          error.response?.data?.message || "Unable to verify this demo payment.",
-        tone: "warning",
-      });
-    } finally {
-      setPaymentLoading(false);
-    }
-  };
+  // ─── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
     return <Loader fullHeight label="Preparing your booking workspace..." />;
@@ -318,19 +308,19 @@ export default function CheckoutPage() {
       <div className="container">
         <div className="page-hero compact">
           <h1>Secure Checkout</h1>
-          <p>
-            Book {car.title} through a polished demo-ready payment journey.
-          </p>
+          <p>Book {car.title} — powered by Razorpay test mode.</p>
         </div>
 
         <div className="checkout-grid">
-          <div className="checkout-main-card" data-aos="fade-right" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* ── Left column ── */}
+          <div
+            className="checkout-main-card"
+            data-aos="fade-right"
+            style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+          >
+            {/* Car preview */}
             <div className="checkout-car-card detail-card" style={{ marginBottom: 0 }}>
-              <SafeImage
-                src={previewImage}
-                fallback={CAR_IMAGE_FALLBACK}
-                alt={car.title}
-              />
+              <SafeImage src={previewImage} fallback={CAR_IMAGE_FALLBACK} alt={car.title} />
               <div>
                 <div className="chip-row">
                   <span className="pill">{car.category || "Premium"}</span>
@@ -339,8 +329,8 @@ export default function CheckoutPage() {
                       car.availabilityStatus === "Available"
                         ? "status-chip available"
                         : car.availabilityStatus === "Booked"
-                          ? "status-chip booked"
-                          : "status-chip"
+                        ? "status-chip booked"
+                        : "status-chip"
                     }
                   >
                     {car.availabilityStatus || "Available"}
@@ -353,9 +343,17 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="detail-card" style={{ position: 'relative', zIndex: 10 }}>
-              <h3 style={{ marginBottom: '1rem' }}>Rental Dates</h3>
-              <div className="booking-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+            {/* Dates */}
+            <div className="detail-card" style={{ position: "relative", zIndex: 10 }}>
+              <h3 style={{ marginBottom: "1rem" }}>Rental Dates</h3>
+              <div
+                className="booking-form-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gap: "1.5rem",
+                }}
+              >
                 <label>
                   Pick-up date
                   <DatePicker
@@ -367,7 +365,6 @@ export default function CheckoutPage() {
                     className="app-input"
                   />
                 </label>
-
                 <label>
                   Return date
                   <DatePicker
@@ -382,6 +379,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Delivery */}
             <div className="detail-card">
               <h3>Choose delivery</h3>
               <div className="choice-grid">
@@ -389,9 +387,7 @@ export default function CheckoutPage() {
                   <button
                     key={choice}
                     type="button"
-                    className={
-                      deliveryMethod === choice ? "choice-chip active" : "choice-chip"
-                    }
+                    className={deliveryMethod === choice ? "choice-chip active" : "choice-chip"}
                     onClick={() => setDeliveryMethod(choice)}
                   >
                     <FiTruck />
@@ -400,12 +396,11 @@ export default function CheckoutPage() {
                 ))}
               </div>
               {deliveryMethod === "meetUpPoint" && car.deliveryOptions?.meetUpPoint ? (
-                <p className="muted-line">
-                  Meet-up point: {car.deliveryOptions.meetUpPoint}
-                </p>
+                <p className="muted-line">Meet-up point: {car.deliveryOptions.meetUpPoint}</p>
               ) : null}
             </div>
 
+            {/* Add-ons */}
             <div className="detail-card">
               <h3>Add-ons</h3>
               {car.addons?.length ? (
@@ -415,9 +410,7 @@ export default function CheckoutPage() {
                       key={addon.name}
                       type="button"
                       className={
-                        selectedAddons.includes(addon.name)
-                          ? "choice-chip active"
-                          : "choice-chip"
+                        selectedAddons.includes(addon.name) ? "choice-chip active" : "choice-chip"
                       }
                       onClick={() => toggleAddon(addon.name)}
                     >
@@ -431,6 +424,7 @@ export default function CheckoutPage() {
               )}
             </div>
 
+            {/* Blocked dates reference */}
             {bookedDates.length ? (
               <div className="detail-card">
                 <h3>Currently blocked dates</h3>
@@ -449,22 +443,44 @@ export default function CheckoutPage() {
             ) : null}
           </div>
 
+          {/* ── Right column — Booking summary ── */}
           <aside className="checkout-summary-card" data-aos="fade-left">
-            <h2 style={{ fontSize: '1.8rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(15,23,42,0.1)', marginBottom: '1.5rem' }}>Booking Summary</h2>
+            <h2
+              style={{
+                fontSize: "1.8rem",
+                paddingBottom: "1rem",
+                borderBottom: "1px solid rgba(15,23,42,0.1)",
+                marginBottom: "1.5rem",
+              }}
+            >
+              Booking Summary
+            </h2>
 
-            <div className="summary-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', margin: '1.5rem 0' }}>
-              <div className="list-row" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <div
+              className="summary-list"
+              style={{ display: "flex", flexDirection: "column", gap: "1rem", margin: "1.5rem 0" }}
+            >
+              <div className="list-row" style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                 <span>Daily rate</span>
                 <strong>{formatCurrency(car.pricePerDay)}</strong>
               </div>
-              <div className="list-row" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <div className="list-row" style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                 <span>Delivery</span>
                 <strong>{formatDeliveryMethod(deliveryMethod)}</strong>
               </div>
-              <div className="list-row" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <div className="list-row" style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                 <span>Add-ons</span>
                 <strong>{selectedAddons.length}</strong>
               </div>
+              {quote?.days ? (
+                <div
+                  className="list-row"
+                  style={{ display: "flex", justifyContent: "space-between", width: "100%" }}
+                >
+                  <span>Rental days</span>
+                  <strong>{quote.days} days</strong>
+                </div>
+              ) : null}
             </div>
 
             <div className="price-box">
@@ -476,27 +492,49 @@ export default function CheckoutPage() {
               </strong>
               <span>
                 {quote?.days
-                  ? `${quote.days} day rental with server-calculated pricing`
-                  : "Select dates to generate an accurate quote"}
+                  ? `${quote.days} day rental — server-verified pricing`
+                  : "Select dates to get an accurate quote"}
               </span>
             </div>
 
-            <div className="payment-note">
+            {/* Razorpay trust badge */}
+            <div className="payment-note" style={{ gap: "0.6rem" }}>
               <FiShield />
               <p>
-                This checkout uses a dummy payment gateway so you can demo the
-                complete flow safely.
+                Payments are secured by{" "}
+                <strong style={{ color: "var(--color-primary)" }}>Razorpay</strong>{" "}
+                (test mode). No real money is charged.
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {/* Accepted methods row */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                flexWrap: "wrap",
+                marginBottom: "1rem",
+              }}
+            >
+              {["UPI", "Cards", "Net Banking", "Wallets"].map((m) => (
+                <span key={m} className="small-chip" style={{ fontSize: "0.72rem" }}>
+                  <FiCreditCard style={{ width: 11 }} /> {m}
+                </span>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <button
+                id="razorpay-pay-btn"
                 type="button"
                 className="btn btn-primary btn-lg w-100"
-                onClick={handleCreateOrder}
+                onClick={handlePayWithRazorpay}
                 disabled={!startDate || !endDate || paymentLoading || car.canBook === false}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
               >
-                {paymentLoading ? "Preparing checkout..." : "Continue to payment"}
+                <FiZap />
+                {paymentLoading ? "Preparing payment..." : "Pay with Razorpay"}
               </button>
 
               <Link to={`/car/${encodeId(car._id)}`} className="btn btn-ghost w-100">
@@ -506,86 +544,6 @@ export default function CheckoutPage() {
           </aside>
         </div>
       </div>
-
-      {showPaymentSheet && checkoutSession ? (
-        <div className="modal-backdrop">
-          <div className="checkout-modal-card" data-aos="zoom-in">
-            <div className="checkout-modal-header">
-              <div>
-                <span className="pill">Demo payment</span>
-                <h3>Complete your presentation checkout</h3>
-              </div>
-              <button
-                type="button"
-                className="modal-close"
-                aria-label="Close payment dialog"
-                onClick={() => setShowPaymentSheet(false)}
-              >
-                &times;
-              </button>
-            </div>
-
-            <div className="detail-card">
-              <div className="list-row checkout-payment-row">
-                <span>Order ID</span>
-                <strong>{checkoutSession.orderId}</strong>
-              </div>
-              <div className="list-row checkout-payment-row">
-                <span>Amount</span>
-                <strong>{formatCurrency(checkoutSession.amount)}</strong>
-              </div>
-            </div>
-
-            <label>
-              Payer name
-              <input
-                className="app-input"
-                value={payerName}
-                onChange={(event) => setPayerName(event.target.value)}
-                placeholder="Enter payer name"
-              />
-            </label>
-
-            <div className="detail-card">
-              <h3>Select a demo method</h3>
-              <div className="choice-grid">
-                {paymentMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    type="button"
-                    className={
-                      paymentMethod === method.id
-                        ? "choice-chip active"
-                        : "choice-chip"
-                    }
-                    onClick={() => setPaymentMethod(method.id)}
-                  >
-                    <FiCreditCard />
-                    {method.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="payment-note">
-              <FiShield />
-              <p>
-                This step does not charge real money. It only simulates the full
-                checkout experience and then creates a paid booking.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="btn btn-primary btn-lg w-100"
-              disabled={paymentLoading}
-              onClick={handleVerifyPayment}
-            >
-              {paymentLoading ? "Processing payment..." : "Confirm demo payment"}
-            </button>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
